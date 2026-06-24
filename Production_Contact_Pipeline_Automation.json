@@ -1,5 +1,5 @@
 {
-  "name": "Production_Contact_Pipeline_Automation",
+  "name": "Many_Mangoes_Pipeline_Automation",
   "nodes": [
     {
       "parameters": {},
@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return [{\n  json: {\n    metadata: {\n      source: \"impactdesk_site\",\n      timestamp: new Date().toISOString()\n    },\n    lead: {\n      name: \"Alex Chen\",\n      email: \"alex.chen@techforward.io\",\n      organization: \"TechForward Solutions\",\n      requirement: \"Full-stack React/Node.js development and custom n8n business process automation pipelines.\"\n    },\n    runtimeControl: {\n      simulateExistingRecord: false\n    }\n  }\n}];"
+        "jsCode": "return [{\n  json: {\n    metadata: {\n      source: \"many_mangoes_portal\",\n      timestamp: new Date().toISOString()\n    },\n    lead: {\n      name: \"Juma Omondi\",\n      email: \"j.omondi@safari-fresh.co.ke\",\n      organization: \"Safari Fresh Distributors\",\n      requirement: \"Cold-chain logistics pipeline automation and inventory tracking for premium export-grade mango shipments out of Nairobi.\"\n    },\n    runtimeControl: {\n      simulateExistingRecord: false\n    }\n  }\n}];"
       },
       "id": "600ce9d0-fc71-4b44-8fe3-5ce4b1cda6ca",
       "name": "Inbound Payload Simulator",
@@ -119,7 +119,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const leadData = $(\"Inbound Payload Simulator\").first().json.lead;\n\nreturn [{\n  json: {\n    channelNotification: \"success\",\n    target: \"#inbound-leads\",\n    blocks: [\n      {\n        type: \"section\",\n        text: \"*Inbound Pipeline Alert*\\n*Name:* \" + leadData.name + \"\\n*Company:* \" + leadData.organization + \"\\n*Email:* \" + leadData.email + \"\\n*Scope of Work:* \\\"\" + leadData.requirement + \"\\\"\"\n      }\n    ]\n  }\n}];"
+        "jsCode": "const leadData = $(\"Inbound Payload Simulator\").first().json.lead;\n\nreturn [{\n  json: {\n    channelNotification: \"success\",\n    target: \"#many-mangoes-leads\",\n    blocks: [\n      {\n        type: \"section\",\n        text: \"*Many Mangoes - Pipeline Alert*\\n*Name:* \" + leadData.name + \"\\n*Company:* \" + leadData.organization + \"\\n*Email:* \" + leadData.email + \"\\n*Project Scope:* \\\"\" + leadData.requirement + \"\\\"\"\n      }\n    ]\n  }\n}];"
       },
       "id": "7e190acb-1f13-420d-8dad-109899fe7840",
       "name": "Slack Operations Dispatcher",
