@@ -1,0 +1,264 @@
+{
+  "name": "Production_Contact_Pipeline_Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ed459538-9cd9-41f6-a3c8-7d215d722f29",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1344,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    metadata: {\n      source: \"impactdesk_site\",\n      timestamp: new Date().toISOString()\n    },\n    lead: {\n      name: \"Alex Chen\",\n      email: \"alex.chen@techforward.io\",\n      organization: \"TechForward Solutions\",\n      requirement: \"Full-stack React/Node.js development and custom n8n business process automation pipelines.\"\n    },\n    runtimeControl: {\n      simulateExistingRecord: false\n    }\n  }\n}];"
+      },
+      "id": "600ce9d0-fc71-4b44-8fe3-5ce4b1cda6ca",
+      "name": "Inbound Payload Simulator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1168,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.lead.email }}"
+            }
+          ]
+        }
+      },
+      "id": "dcb725a5-63db-4697-8806-7e22dd3f1237",
+      "name": "Payload Validator",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const recordExists = $json.runtimeControl.simulateExistingRecord;\n\nif (recordExists) {\n  return [{ json: { matchFound: true, sheetIndex: 142, email: $json.lead.email } }];\n} else {\n  return [{ json: { matchFound: false } }];\n}"
+      },
+      "id": "86a6df0b-a4af-4d99-9419-e7e32ff6ce1d",
+      "name": "CRM Lookup Simulation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.matchFound }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "cb3cfd6f-9ae2-48ce-a065-e5de2c8718cb",
+      "name": "Route by Existence",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    writeStatus: \"committed\",\n    allocatedRow: 812,\n    identifier: $['Inbound Payload Simulator'].item.json.lead.email\n  }\n}];"
+      },
+      "id": "54838199-923f-4010-b878-d9172f963c7b",
+      "name": "CRM Append Simulation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        176
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    writeStatus: \"skipped\",\n    reason: \"duplicate_prevented\",\n    identifier: $['Inbound Payload Simulator'].item.json.lead.email\n  }\n}];"
+      },
+      "id": "6a58b4cf-2d16-46cb-91fe-9b38d28f95c2",
+      "name": "Log Deduplication Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    dispatched: true,\n    recipient: $(\"Inbound Payload Simulator\").first().json.lead.email,\n    deliveryTimestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "45cfb1bc-8983-4a4a-9f80-2599a14ce76a",
+      "name": "Transactional Email Service",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const leadData = $(\"Inbound Payload Simulator\").first().json.lead;\n\nreturn [{\n  json: {\n    channelNotification: \"success\",\n    target: \"#inbound-leads\",\n    blocks: [\n      {\n        type: \"section\",\n        text: \"*Inbound Pipeline Alert*\\n*Name:* \" + leadData.name + \"\\n*Company:* \" + leadData.organization + \"\\n*Email:* \" + leadData.email + \"\\n*Scope of Work:* \\\"\" + leadData.requirement + \"\\\"\"\n      }\n    ]\n  }\n}];"
+      },
+      "id": "7e190acb-1f13-420d-8dad-109899fe7840",
+      "name": "Slack Operations Dispatcher",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    faultType: \"INVALID_LEAD_DATA\",\n    errorContext: \"Inbound request rejected due to unresolvable identifier parameter.\",\n    systemTimestamp: new Date().toISOString()}\n}];"
+      },
+      "id": "f392a3e2-a443-4bf9-8baf-59d400233412",
+      "name": "Exception Handling Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        256
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Inbound Payload Simulator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound Payload Simulator": {
+      "main": [
+        [
+          {
+            "node": "Payload Validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload Validator": {
+      "main": [
+        [
+          {
+            "node": "Exception Handling Router",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CRM Lookup Simulation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM Lookup Simulation": {
+      "main": [
+        [
+          {
+            "node": "Route by Existence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Existence": {
+      "main": [
+        [
+          {
+            "node": "Log Deduplication Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CRM Append Simulation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM Append Simulation": {
+      "main": [
+        [
+          {
+            "node": "Transactional Email Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Deduplication Event": {
+      "main": [
+        [
+          {
+            "node": "Transactional Email Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transactional Email Service": {
+      "main": [
+        [
+          {
+            "node": "Slack Operations Dispatcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e22bfaa9-78a8-4798-8fcd-3918cebbb377",
+  "meta": {
+    "instanceId": "b5fab4c20b9bddb53732ce7f8b579576b5a4472dbc5aa4126b3354710c47232c"
+  },
+  "nodeGroups": [],
+  "id": "78cBMRC63qzyvSsT",
+  "tags": []
+}
